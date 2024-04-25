@@ -1,0 +1,242 @@
+* {
+    margin: 0;
+    padding: 0;
+    /* background-color: rgb(34, 34, 34); */
+
+}
+
+.App-logo {
+    height: 40vmin;
+    padding: 1rem;
+    margin-bottom: 2rem;
+    display:block;    
+    border-radius: 50%;
+}
+html,body {
+    height: 100%;
+    z-index: -1;
+    background-color: rgb(49, 41, 41);
+}
+.app-container {
+    /* min-height: 100%; */
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: rgb(54, 53, 53);
+}
+.user-form {
+    margin-top: 30px !important;
+    max-width: 800px;
+    margin: auto;
+}
+
+.home {
+    min-height: 100vh;
+}
+
+.pointer {
+    cursor: pointer;
+}
+.share-game {
+    position: absolute;
+    width: 500px;
+    bottom: 0;
+    left: 0;
+}
+.board-container {
+    width:100vmin;
+    /* height: 100vmin; */
+    display: flex;
+    justify-content: center;
+    /* padding-left: 0.7rem; */
+}
+
+.board {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.square {
+    width: 12.5%;
+    height: 12.5%;
+}
+
+p {
+    color: #B59963;
+}
+
+.promote-square {
+    width: 50%;
+    height: 50%;
+}
+
+.square-black {
+    background: #B59963
+}
+
+.square-white {
+    background: #F0D9B5
+}
+
+.board-square {
+    width: 100%;
+    height: 100%;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.piece-container {
+    cursor: grab;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    
+}
+
+.piece {
+    max-width: 70%;
+    max-height: 70%;
+}
+
+.google-login-button {
+    background-color: #ca815f;
+    color: white;
+    padding: 1rem;
+
+    border-radius: 5px;
+
+    border: none;
+}
+
+
+
+.endgame-text {
+    /* text-orientation: upright; */
+    /* writing-mode: vertical-lr; */
+    font-family: sans-serif;
+    padding: 10px;
+    color: white;
+}
+
+/* Style the navigation bar */
+.topnav {
+    background-color: #333;
+    overflow: hidden;
+  }
+  
+  /* Style the links inside the navigation bar */
+  .topnav a {
+    float: left;
+    color: #f2f2f2;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    font-size: 17px;
+  }
+  
+  /* Change the color of links on hover */
+  .topnav a:hover {
+    background-color: #ddd;
+    color: black;
+  }
+  
+  /* Create a right-aligned (split) link inside the navigation bar */
+  .topnav a.split {
+    float: right;
+    background-color: #ca815f;
+    color: white;
+  }
+
+  .move-right {
+      float: right;
+      color: white;
+      padding-right: 1rem;
+  }
+
+  .my_container {
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: calc(10px + 2vmin);
+    text-align: center;
+    margin: 1rem;
+  }
+  
+.tags .tag {
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+.tags:not(:last-child){
+    margin-bottom: 0;
+}
+
+.is-w {
+    border-bottom: thick solid #B59963
+}
+
+.is-b {
+    border-bottom: thick solid black;
+}
+
+
+.gamelist {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+
+}
+
+.gamelist .button {
+    margin-bottom: 0.2rem;
+    padding: 1rem;
+    box-shadow: 0 0.5em 1em -0.125em rgb(10 10 10 / 10%), 0 0 0 1px rgb(10 10 10 / 2%);
+}
+
+.homepage-logo {
+    height: 2.5rem;
+    width: auto;
+    display: flex;
+}
+
+.topnav a {
+    padding: 0.5rem 0.5rem
+}
+img {
+    max-width: auto;
+    max-height: 100%;
+}
+
+.dot {
+    height: 1.3rem;
+    width: 1.3rem;
+    font-size: 0.8rem;
+    border-radius: 50%;
+    display:flex;
+    align-items: center;
+    color: black;
+    background-color:#ca815f;
+    justify-content: center;
+    padding-inline: 0.3rem;
+    margin-inline: 0.3rem;
+}
+
+.modal-card {
+    max-width: 100vw;
+}
+
+/* set style last sibling under [data-square] */
+[data-square] > * > div:last-child  {
+    font-size: 1.2rem !important;
+    padding-left: 0.3rem;
+    padding-right: 0.3rem;
+    padding-bottom: 0;   
+}

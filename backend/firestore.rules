@@ -1,0 +1,13 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+  
+    match /games/{gameId} {
+      // allow read, write: if false;
+      allow read: if request.auth != null && (request.auth.uid in resource.data.players || resource.data.status == 'waiting');
+    }
+
+  }
+
+}
+
