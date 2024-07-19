@@ -20,49 +20,52 @@ export default function Board({ fen, piece, players, gstatus, id }) {
     const [game, setGameDb] = useState()
 
     useEffect(() => {
-        if (fen) {
-            console.log("fen",fen)
-            const myGame = new Chess(fen)
-            console.log("myGame",myGame)
-            setGameDb(new Chess(fen))
-        }
-    }, [fen])
-
-    useEffect(() => {
-        console.log("players",players)
+        console.log("Initialising chessboard, setting size")
         function handleResize() {
             const display = document.getElementsByClassName('board-container')[0];
             setChessboardSize(display.offsetWidth - 20);
         }
-        function updateInfo(){
-            console.log("updation info")
-            if (!game) {
-                console.log("no game")
-                setStatus("")
-                return
-            }
-            const nextPlayer = game.turn() === 'b' ? 'black' : 'white';
-            const currentPlayer = game.turn() === 'b' ? 'white' : 'black';
-            
-            console.log({nextPlayer})
-            let msg = ""
-            if (game.in_checkmate() === true) {
-                msg = `CHECKMATE! Player ${currentPlayer} wins!`;
-            } else if (game.in_draw() === true) {
-                msg = 'DRAW!';
-            } else {
-                msg = game.in_check() === true ? 'CHECK!' : ''
-                msg += ` ${nextPlayer}'s turn.`;
-            }
-            setStatus(msg);      
-
-        }
-
         window.addEventListener('resize', handleResize);
         handleResize();
-        updateInfo()
         return () => window.removeEventListener('resize', handleResize);
-    }, [game])
+    }, [])
+
+
+    useEffect(() => {
+        if (fen) {
+            console.log("fen",fen)
+            setGameDb( (prev) => {
+                if (prev) {
+                    prev.load(fen)
+                    updateInfo(prev)
+                    return prev
+                }
+                return new Chess(fen)
+            })
+        }
+        
+    }, [fen])
+
+    function updateInfo(gameView) {
+        console.log("updation info")
+        
+        const nextPlayer = gameView.turn() === 'b' ? 'black' : 'white';
+        const currentPlayer = gameView.turn() === 'b' ? 'white' : 'black';
+        
+        console.log({nextPlayer})
+        let msg = ""
+        if (gameView.in_checkmate() === true) {
+            msg = `CHECKMATE! Player ${currentPlayer} wins!`;
+        } else if (gameView.in_draw() === true) {
+            msg = 'DRAW!';
+        } else {
+            msg = gameView.in_check() === true ? 'CHECK!' : ''
+            msg += ` ${nextPlayer}'s turn.`;
+        }
+        setStatus(msg);      
+
+    }
+
  
     function getMoveOptions(square) {
         const moves = game.moves({

@@ -11,7 +11,7 @@ if ( getApps().length === 0 ) {
 const db = getFirestore();
 
 const QuitGameRequest = z.object({
-    gameId: z.string(),
+  gameId: z.string(),
 }).strict();
 
 /* example game schema:
@@ -30,55 +30,54 @@ const QuitGameRequest = z.object({
 }
 */
 
-export const quitGame = onCall({ cors: [], enforceAppCheck: true}, async (request) => {
+export const quitGame = onCall({cors: "*", enforceAppCheck: true}, async (request) => {
+  // check if authenticated
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "You must be authenticated");
+  }
 
-    // check if authenticated
-    if (!request.auth) {
-        throw new HttpsError("unauthenticated", "You must be authenticated");
-    }
+  const parsed = QuitGameRequest.safeParse(request.data);
 
-    const parsed = QuitGameRequest.safeParse(request.data);
+  if (!parsed.success) {
+    logger.error("Invalid data");
+    logger.info(parsed.error);
+    throw new HttpsError("invalid-argument", "Invalid data");
+  }
 
-    if (!parsed.success) {
-        logger.error("Invalid data");
-        logger.info(parsed.error);
-        throw new HttpsError("invalid-argument", "Invalid data");
-    }
+  const gameRef = db.collection("games").doc( parsed.data.gameId );
+  const gameDoc = await gameRef.get();
 
-    const gameRef = db.collection("games").doc( parsed.data.gameId );
-    const gameDoc = await gameRef.get();
+  if (!gameDoc.exists) {
+    throw new HttpsError("not-found", "Game not found");
+  }
 
-    if (!gameDoc.exists) {
-        throw new HttpsError("not-found", "Game not found");
-    }
+  const gameData = gameDoc.data();
+  if (!gameData) {
+    throw new HttpsError("internal", "Game data is missing");
+  }
 
-    const gameData = gameDoc.data();
-    if (!gameData) {
-        throw new HttpsError("internal", "Game data is missing");
-    }
+  if (gameData.status !== "active") {
+    throw new HttpsError("failed-precondition", "Game is not active");
+  }
 
-    if (gameData.status !== "active") {
-        throw new HttpsError("failed-precondition", "Game is not active");
-    }
+  const uid = request.auth.uid;
+  const playerData = gameData.players[uid];
+  if (!playerData) {
+    throw new HttpsError("permission-denied", "You are not a player in this game");
+  }
 
-    const uid = request.auth.uid;
-    const playerData = gameData.players[uid];
-    if (!playerData) {
-        throw new HttpsError("permission-denied", "You are not a player in this game");
-    }
+  if (playerData.pstatus == "quit") {
+    throw new HttpsError("failed-precondition", "You have already quit this game");
+  }
 
-    if (playerData.pstatus == "quit") {
-        throw new HttpsError("failed-precondition", "You have already quit this game");
-    }
+  await gameRef.update({
+    [`players.${uid}.pstatus`]: "quit",
+    status: "quit",
+    finishedAt: FieldValue.serverTimestamp(),
+  });
 
-    await gameRef.update({
-        [`players.${uid}.pstatus`]: "quit",
-        status: "quit",
-        finishedAt: FieldValue.serverTimestamp(),
-    })
+  logger.info(`Player ${uid} quit game ${parsed.data.gameId}`);
 
-    logger.info(`Player ${uid} quit game ${parsed.data.gameId}`);
-
-    return { success: true };
+  return {success: true};
 }
 );

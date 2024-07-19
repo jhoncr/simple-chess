@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import "./App.css";
 import Board from "./components/Board";
 import { useParams, useNavigate } from "react-router-dom";
-import { getDocRef, useGameWatcher } from "./db_handler";
+import { useGameWatcher } from "./db_handler";
 // import { mark_seen } from "./notificationHandler";
 import { useAuth } from "./auth_handler";
 import { httpsCallable, getFunctions } from "firebase/functions";
@@ -79,26 +79,104 @@ const QuitModal = function ({ isActive, handleModalClick, gameId }) {
   );
 };
 
+const GameBody = function ( {loading, game, handleModalClick, id, authUser} ) {
+  const navigate = useNavigate();
+  const sharebleLink = window.location.href;
 
+  const GameOverMessage = function () {
+    if (game.status === "quit") {
+      const quitter = Object.entries(game.players).find(
+        ([uid, player]) => player.pstatus === "quit"
+      );
+
+      return `${quitter[1].name} has quit the game`;
+    }
+
+    if (game.status === "finished") {
+      return "GAME OVER";
+    }
+    return ":/";
+  };
+
+  return (
+    <>
+    {(loading && <div className="loader"></div>) ||
+    (!game && <div>Game not found or you are not authorized to view this game</div>) ||
+    (game.status === "waiting" && !game.players[authUser.uid] && <div>Waiting for the game to start</div>) || 
+
+    <div className="column">
+      <div className="app-container">
+        <div
+          className="board-container"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Board
+            id={id}
+            fen={game.gameState}
+            piece={game.players[authUser.uid].piece}
+            players={{
+              me: authUser.displayName,
+              // the oponent had a differen uid than the current user
+              opponent: game.players[ Object.keys(game.players).find(uid => uid !== authUser.uid) ]?.name ?? "Waiting for opponent",
+            }}
+            gstatus={game.status}
+          />
+        </div>
+
+        { game.status === "finished" || game.status === "quit" 
+        ? (
+          <>
+            <h2 className="endgame-text">
+              <GameOverMessage />
+            </h2>
+            <button
+              className='button is-medium is-fullwidth"'
+              onClick={async () => navigate("/")}
+            >
+              NEW GAME
+            </button>
+          </>
+        ) 
+        : (
+          game.status === "active" && (
+            <button className="button" onClick={handleModalClick}>
+              Quit
+            </button>
+          )
+        )}
+      </div>
+      {
+        // if game is waiting, show the dialog
+      game.status === "waiting" && <Dialog sharebleLink={sharebleLink} />
+      }
+    </div>
+    }
+    </>
+  );
+};
 
 function GameApp() {
-  // const [board, setBoard] = useState([])
-  // const [isGameOver, setIsGameOver] = useState();
-  // const [result, setResult] = useState();
-  // const [position, setPosition] = useState();
-  // const [initResult, setInitResult] = useState(null);
-  // const [loading, setLoading] = useState(true);
   const [modalState, setModalState] = useState("");
   const { id } = useParams();
   const { authUser } = useAuth();
   const { game, loading } = useGameWatcher(`games/${id}`);
 
-  const navigate = useNavigate();
-  const sharebleLink = window.location.href;
+
 
   const handleModalClick = function () {
     setModalState(modalState === "" ? "is-active" : "");
   };
+  useEffect(() => {
+    console.log("GameApp mounted");
+    return () => {
+      console.log("GameApp unmounted");
+    };
+  }, []);
 
   useEffect(() => {
     if (game && game.status === "waiting") {
@@ -117,96 +195,12 @@ function GameApp() {
 
  
 
-  const GameOverMessage = function () {
-    if (game.status === "quit") {
-      // get game.player[uid] that has pstatus = quit
-     /* players:{
-        [uid]: { pstatus: "active" | "quit" | "finished", piece: "white" | "black", name: string }
-     }
-     */
-      const quitter = Object.entries(game.players).find(
-        ([uid, player]) => player.pstatus === "quit"
-      );
-
-      return `${quitter[1].name} has quit the game`;
-    }
-
-    if (game.status === "finished") {
-      return "GAME OVER";
-    }
-    return ":/";
-  };
-
-  const GameBody = function () {
-    if (loading) {
-      return "Loading ...";
-    }
-    if (!game) {
-      return "Game not found or you are not authorized to view this game";
-    }
-
-    if (game.status === "waiting" && !game.players[authUser.uid]) {
-      return "Waiting for the game to start";
-    }
 
 
-    return (
-      <div className="column">
-        <div className="app-container">
-          <div
-            className="board-container"
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <Board
-              id={id}
-              fen={game.gameState}
-              piece={game.players[authUser.uid].piece}
-              players={{
-                me: authUser.displayName,
-                // the oponent had a differen uid than the current user
-                opponent: game.players[ Object.keys(game.players).find(uid => uid !== authUser.uid) ]?.name ?? "Waiting for opponent",
-              }}
-              gstatus={game.status}
-            />
-          </div>
-
-          { game.status === "finished" || game.status === "quit" 
-          ? (
-            <>
-              <h2 className="endgame-text">
-                <GameOverMessage />
-              </h2>
-              <button
-                className='button is-medium is-fullwidth"'
-                onClick={async () => navigate("/")}
-              >
-                NEW GAME
-              </button>
-            </>
-          ) 
-          : (
-            game.status === "active" && (
-              <button className="button" onClick={handleModalClick}>
-                Quit
-              </button>
-            )
-          )}
-        </div>
-        {
-          // if game is waiting, show the dialog
-        game.status === "waiting" && <Dialog sharebleLink={sharebleLink} />
-        }
-      </div>
-    );
-  };
+  
   return (
     <>
-      <GameBody />
+      <GameBody loading={loading} game={game} handleModalClick={handleModalClick} id={id} authUser={authUser} />
       <QuitModal 
       isActive={modalState} 
       handleModalClick={handleModalClick} 

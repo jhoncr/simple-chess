@@ -51,9 +51,15 @@ export function useGameWatcher(gameRef) {
 
   useEffect(() => {
 
+    console.log("watching game", gameRef);
+
+
     const unsubscribe = onSnapshot(doc(db, gameRef), (doc) => {
       // add the id to the game object
+      
       setGame({ ...doc.data(), id: doc.id });
+      setLoading(false);
+      console.log("game updated", doc.data());
     }, (error) => {
       if (error.code === "permission-denied") {
         console.log("Permission denied. You don't have access to this game.");

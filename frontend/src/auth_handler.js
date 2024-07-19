@@ -3,7 +3,7 @@ import { getAuth,
   GoogleAuthProvider, 
   signInWithPopup,  
   connectAuthEmulator, 
-  signInWithRedirect,
+  // signInWithRedirect,
   User } from "firebase/auth"
 import { useState, useEffect, createContext, useContext } from 'react'
 import { CustomProvider, initializeAppCheck, ReCaptchaEnterpriseProvider } from "firebase/app-check";
@@ -73,8 +73,8 @@ export const useFirebaseAuth = () => {
 
   const signInWithGoogle = () => {
     const provider = new GoogleAuthProvider();
-    // signInWithPopup(auth, provider);
-    signInWithRedirect(auth, provider);
+    signInWithPopup(auth, provider);
+    // signInWithRedirect(auth, provider);
   };
 
   const handleAuthStateChanged = user => {
