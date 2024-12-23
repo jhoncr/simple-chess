@@ -19,6 +19,7 @@ module.exports = {
   },
   ignorePatterns: [
     "/lib/**/*", // Ignore built files.
+    "/generated/**/*", // Ignore generated files.
   ],
   plugins: [
     "@typescript-eslint",
@@ -27,6 +28,6 @@ module.exports = {
   rules: {
     "quotes": ["error", "double"],
     "import/no-unresolved": 0,
-    "max-len": ["error", {"code": 130, "ignoreComments": true, "ignoreTrailingComments": true}],
+    "indent": ["error", 2],
   },
 };
