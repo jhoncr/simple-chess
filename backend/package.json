@@ -1,0 +1,6 @@
+{
+  "name": "backend",
+  "scripts": {
+    "dev": "firebase --version;firebase emulators:start --project=demo-dummy"
+  }
+}

@@ -4,7 +4,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation, Navigate, Outlet, 
 import Home from './Home'
 import Login from './UserForm'
 import GameApp from './GameApp'
-import { useAuth, AuthUserProvider } from './auth_handler'
+import { useAuth } from './auth_handler'
 
 
 export default function App() {
