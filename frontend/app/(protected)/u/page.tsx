@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { GameLinkProps, Players } from "./game/components/GameTypes";
+import { SquarePlus } from "lucide-react";
 
 const initGame = httpsCallable(getFunctions(), "initGame", {
   timeout: 60 * 1000,
@@ -31,19 +32,41 @@ function GameLink({ players, gameId }: GameLinkProps) {
   const pls = Object.entries(players);
   pls.push([null, { piece: pls[0][1].piece === "w" ? "b" : "w", name: "?" }]);
 
+  const PieceBorders = ({ piece }: { piece: string }) => {
+    // return a white div of 4px width if piece is white
+    // return a gray div of 4px width if piece is black
+    // else return a transparent div of 4px width
+    // the div have the same height as the parent
+    // hide overflow
+    switch (piece) {
+      case "w":
+        return <div className="w-full h-full bg-white text-white">|</div>;
+      case "b":
+        return (
+          <div className="w-full h-full bg-gray-700 text-gray-700">|</div>
+        );
+      default:
+        return <div className=""></div>;
+    }
+  };
+
   return (
     <a
       href={getPushLink(gameId)}
-      className="block w-full p-3 rounded-md border hover:bg-gray-50 focus:outline-none"
+      className="block w-full border rounded-md overflow-hidden"
+      key={gameId}
     >
-      {pls.slice(0, 2).map((p, idx) => (
-        <React.Fragment key={`${gameId}-${idx}`}>
-          <span className={`text-${p[1].piece === "w" ? "blue" : "red"}-600`}>
-            {p[1].name}
-          </span>
-          {idx < 1 && <span className="mx-2">vs</span>}
-        </React.Fragment>
-      ))}
+      <div className="grid grid-cols-11 items-center text-center h-full">
+        <PieceBorders piece={pls[0][1].piece} />
+        <div className="flex items-center justify-center col-span-4 h-full">
+          <p className="p-2 overflow-hidden">{pls[0][1].name}</p>
+        </div>
+        <div className="col-span-1 text-gray-700">vs</div>d
+        <div className="flex items-center justify-center col-span-4 h-full">
+          <p className="p-2 overflow-hidden">{pls[1][1].name}</p>
+        </div>
+        <PieceBorders piece={pls[1][1].piece} />
+      </div>
     </a>
   );
 }
@@ -87,7 +110,7 @@ export default function Home() {
   }
 
   return (
-    <div className="flex flex-col space-y-6 p-4">
+    <div className="flex flex-col space-y-6 p-4 md:max-w-2xl md:mx-auto">
       <Card>
         <CardHeader>
           <CardTitle>Ongoing Games</CardTitle>
@@ -102,11 +125,11 @@ export default function Home() {
           <CardTitle>New Game</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p>Please select the piece you want to start:</p>
+          <p>Select the piece you want to start:</p>
           <RadioGroup
             defaultValue="r"
             onValueChange={(val) => handleStartPieceChange(val)}
-            className="flex flex-col space-y-2"
+            className="flex flex-col space-y-2 pl-8"
           >
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="b" id="black" />
@@ -123,7 +146,9 @@ export default function Home() {
           </RadioGroup>
         </CardContent>
         <CardFooter>
-          <Button onClick={startOnlineGame}>Create</Button>
+          <Button onClick={startOnlineGame} className="w-full">
+            <SquarePlus /> Create Game
+          </Button>
         </CardFooter>
       </Card>
     </div>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 // import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Play } from "lucide-react";
 import { Footer } from "@/components/footer";
 
@@ -26,7 +26,7 @@ export default function AboutPage() {
                 className="inline-flex h-16 mt-4 items-center justify-center rounded-md bg-secondary px-12 text-lg font-medium text-secondary-foreground shadow transition-colors hover:bg-secondary/90 hover:scale-105 active:scale-95"
               >
                 <Play size={24} className="mr-2" />
-                Start a Game
+                Play
               </Link>
             </div>
           </div>
@@ -43,7 +43,7 @@ export default function AboutPage() {
                 {
                   title: "Create a game",
                   description:
-                    "Click on the 'Play' button in the navigation bar and create a new game.",
+                    "Click on the 'Play' button in the navigation bar and create a new game. You'll be asked to login if you haven't already.",
                   image: "/simple-chess.svg",
                 },
                 {
@@ -58,68 +58,29 @@ export default function AboutPage() {
                   image: "/simple-chess.svg",
                 },
               ].map((step, index) => (
-                <Card key={index} className="flex flex-col items-center mb-6">
-                  <div className="grid grid-cols-2 gap-4 items-center p-4">
-                    <div className="flex flex-col justify-center space-y-4">
+                <Card
+                  key={index}
+                  className="flex flex-col items-center w-full max-w-md md:max-w-lg lg:max-w-xl"
+                >
+                  <div className="flex items-center w-full p-4">
+                    <div className="flex flex-col justify-left space-y-4">
                       <h3 className="text-2xl font-bold">{step.title}</h3>
-
                       <p>{step.description}</p>
                       <div />
                     </div>
-                    <img
+                    {/* <img
                       alt={step.title}
                       className="overflow-hidden rounded-xl object-cover object-center"
                       height="310"
                       src={step.image}
                       width="550"
-                    />
+                    /> */}
                   </div>
                 </Card>
               ))}
             </div>
           </div>
         </section>
-
-        {/* Team Members */}
-        {/* <section className="w-full py-12 md:py-24 lg:py-32">
-          <div className="Simple Chesspx-4 md:px-6">
-            <h2 className="text-xl tracking-tighter sm:text-4xl md:text-5xl text-center mb-8">
-              Made with{" "}
-              <Heart size={24} className="inline-block text-red-500" /> by Jhon
-            </h2>
-            <div className="flex flex-wrap justify-center gap-6">
-              {[
-                {
-                  name: "Jhon Cordeiro",
-                  role: "build stuff",
-                  image:
-                    "https://pbs.twimg.com/profile_images/1499957658941476867/IkeXWjX0_400x400.jpg",
-                  // "https://x.com/J3Cordeiro/profile_image?size=original",
-                },
-              ].map((member, index) => (
-                <Link href="https://x.com/J3Cordeiro" key={index}>
-                  <Card className="cursor-pointer">
-                    <CardHeader className="flex flex-col items-center">
-                      <img
-                        alt={member.name}
-                        className="aspect-square overflow-hidden rounded-full object-cover object-center"
-                        height="200"
-                        src={member.image}
-                        width="200"
-                      />
-                      <CardTitle className="mt-4">{member.name}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="text-center">
-                      <p className="text-gray-500 dark:text-gray-400">
-                        {member.role}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section> */}
       </main>
 
       <Footer />

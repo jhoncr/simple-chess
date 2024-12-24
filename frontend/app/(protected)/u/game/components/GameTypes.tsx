@@ -10,8 +10,8 @@ export interface GameLinkProps {
   players: Players;
   gameId: string;
 }
-interface GameData {
-  [key: string]: {
-    players: Players;
-  };
-}
+// interface GameData {
+//   [key: string]: {
+//     players: Players;
+//   };
+// }

@@ -1,11 +1,12 @@
 import { Timestamp } from "firebase/firestore";
+// import the type User from
 
 export interface User {
   uid: string;
-  displayName?: string;
-  email: string;
-  photoURL?: string;
-  role: string;
+  displayName?: string | null;
+  email: string | null;
+  photoURL?: string | null;
+  role?: string;
 }
 
 export interface AccessMap {
@@ -29,6 +30,7 @@ export interface DBentry {
   date: Timestamp;
   id: string;
   // optional fields
+  // eslint-disable-next-line
   [key: string]: any;
 }
 

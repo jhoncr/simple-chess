@@ -1,7 +1,7 @@
 "use client";
 import React, { useRef, useEffect, useState } from "react";
 import { Chessboard } from "react-chessboard";
-import { Chess } from "chess.js";
+import { Chess, Square } from "chess.js";
 import { httpsCallable, getFunctions } from "firebase/functions";
 import { Players } from "./GameTypes";
 import { Badge } from "@/components/ui/badge";
@@ -33,18 +33,20 @@ export function Board({
   id,
   setCheckMessage,
 }: BoardProps) {
-  let chessboardRef = useRef();
+  const chessboardRef = useRef(null);
   const [moveFrom, setMoveFrom] = useState("");
-  const [rightClickedSquares, setRightClickedSquares] = useState({});
+  const [rightClickedSquares, setRightClickedSquares] = useState<
+    Record<string, { backgroundColor: string } | undefined>
+  >({});
   const [optionSquares, setOptionSquares] = useState({});
   // const [status, setStatus] = useState();
-  const [game, setGameDb] = useState();
+  const [game, setGameDb] = useState<Chess | null>(null);
 
   useEffect(() => {
     if (fen) {
       console.log("fen", fen);
       setGameDb((prev) => {
-        if (prev) {
+        if (prev !== null) {
           prev.load(fen);
           updateInfo(prev);
           return prev;
@@ -73,7 +75,7 @@ export function Board({
     setCheckMessage(msg);
   }
 
-  function getMoveOptions(square: string) {
+  function getMoveOptions(square: Square) {
     if (!game) return;
 
     const moves: Move[] = game.moves({ square, verbose: true });
@@ -88,8 +90,8 @@ export function Board({
     moves.map((move) => {
       newSquares[move.to] = {
         background:
-          game.get(move.to) &&
-          game.get(move.to).color !== game.get(square).color
+          game.get(move.to as Square) &&
+          game.get(move.to as Square).color !== game.get(square).color
             ? "radial-gradient(circle, rgba(0,0,0,.1) 85%, transparent 85%)"
             : "radial-gradient(circle, rgba(0,0,0,.1) 25%, transparent 25%)",
         borderRadius: "50%",
@@ -103,14 +105,14 @@ export function Board({
   }
 
   function onSquareClick(square: string) {
-    if (gstatus !== "active" || piece !== game.turn() || !game) return;
+    if (gstatus !== "active" || !game || piece !== game.turn()) return;
 
     console.log({ piece, turn: game.turn() });
     setRightClickedSquares({});
 
     function resetFirstMove(square: string) {
       setMoveFrom(square);
-      getMoveOptions(square);
+      getMoveOptions(square as Square);
     }
 
     // if moveFrom is empty (first touch), set moveFrom and getMoveOptions
@@ -122,7 +124,7 @@ export function Board({
     // attempt to make move
     // const gameCopy = new Chess(game.fen());
     try {
-      const move = game.move({
+      game.move({
         from: moveFrom,
         to: square,
         promotion: "q", // always promote to a queen for example simplicity
@@ -145,6 +147,7 @@ export function Board({
           console.error(error);
         });
     } catch (error) {
+      console.error(error);
       resetFirstMove(square);
       return;
     }
@@ -170,7 +173,7 @@ export function Board({
       players.opponent && (
         <div className="flex items-center space-x-2 my-2">
           <h2 className="text-lg font-semibold">
-            {isMe ? players.me : players.opponent}
+            {isMe ? String(players.me) : String(players.opponent)}
           </h2>
           {((isMe && piece === turn) || (!isMe && piece !== turn)) && (
             <Badge variant="secondary">Turn</Badge>
@@ -200,7 +203,6 @@ export function Board({
           customSquareStyles={{
             ...optionSquares,
             ...rightClickedSquares,
-            "font-size": "40px",
           }}
           ref={chessboardRef}
         />

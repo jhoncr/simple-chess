@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext } from "react";
+import { useState, useEffect } from "react";
 import {
   getFirestore,
   connectFirestoreEmulator,
@@ -8,7 +8,7 @@ import {
   doc,
   query,
   where,
-  addDoc,
+  // addDoc,
   onSnapshot,
 } from "firebase/firestore";
 import { app } from "./auth_handler";
@@ -64,7 +64,9 @@ export function useGameWatcher(gameRef) {
       },
       (error) => {
         if (error.code === "permission-denied") {
-          console.log("Permission denied. You don't have access to this game.");
+          console.log(
+            "Permission denied. You don't have access to this game."
+          );
         } else {
           console.log("An error occurred:", error);
         }

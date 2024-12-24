@@ -16,8 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Board } from "./components/Board";
-import { Card } from "@/components/ui/card";
-import { OctagonX, CircleStop } from "lucide-react";
+import { OctagonX } from "lucide-react";
 
 const initGame = httpsCallable(getFunctions(), "initGame", {
   timeout: 60 * 1000,
@@ -28,7 +27,15 @@ const quitGame = httpsCallable(getFunctions(), "quitGame", {
   limitedUseAppCheckTokens: true,
 });
 
-function QuitModal({ isActive, handleModalClick, gameId }) {
+function QuitModal({
+  isActive,
+  handleModalClick,
+  gameId,
+}: {
+  isActive: string;
+  handleModalClick: () => void;
+  gameId: string;
+}) {
   const router = useRouter();
 
   const quitMyGame = async () => {
@@ -57,8 +64,23 @@ function QuitModal({ isActive, handleModalClick, gameId }) {
     </Dialog>
   );
 }
+interface GameBodyProps {
+  loading: boolean;
+  //eslint-disable-next-line
+  game: any;
+  handleModalClick: () => void;
+  id: string;
+  //eslint-disable-next-line
+  authUser: any;
+}
 
-function GameBody({ loading, game, handleModalClick, id, authUser }) {
+function GameBody({
+  loading,
+  game,
+  handleModalClick,
+  id,
+  authUser,
+}: GameBodyProps) {
   const router = useRouter();
   const [checkMessage, setCheckMessage] = useState("");
   const sharebleLink =
@@ -126,7 +148,9 @@ function GameBody({ loading, game, handleModalClick, id, authUser }) {
           </Button>
         )}
 
-        {game.status === "waiting" && <ShareCard sharebleLink={sharebleLink} />}
+        {game.status === "waiting" && (
+          <ShareCard sharebleLink={sharebleLink} />
+        )}
       </div>
     </div>
   );
