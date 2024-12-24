@@ -29,7 +29,6 @@ function LandingHeader() {
         </Link>
         <nav className="flex items-center space-x-6 text-sm font-medium">
           <Link href="/u">Play</Link>
-          <Link href="/about">About</Link>
         </nav>
 
         <div className="flex items-center justify-between space-x-2 md:justify-end">

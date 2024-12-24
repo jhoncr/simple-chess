@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useGameWatcher } from "@/lib/db_handler";
 import { httpsCallable, getFunctions } from "firebase/functions";
 import { useAuth } from "@/lib/auth_handler";
-import { ShareCart } from "./components/ShareCard";
+import { ShareCard } from "./components/ShareCard";
 // Shadcn imports (adjust paths/names as needed)
 import {
   Dialog,
@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Board } from "./components/Board";
+import { Card } from "@/components/ui/card";
+import { OctagonX, CircleStop } from "lucide-react";
 
 const initGame = httpsCallable(getFunctions(), "initGame", {
   timeout: 60 * 1000,
@@ -32,7 +34,7 @@ function QuitModal({ isActive, handleModalClick, gameId }) {
   const quitMyGame = async () => {
     try {
       await quitGame({ gameId });
-      router.push("/");
+      router.push("/u");
     } catch (error) {
       console.error(error);
     }
@@ -58,6 +60,7 @@ function QuitModal({ isActive, handleModalClick, gameId }) {
 
 function GameBody({ loading, game, handleModalClick, id, authUser }) {
   const router = useRouter();
+  const [checkMessage, setCheckMessage] = useState("");
   const sharebleLink =
     typeof window !== "undefined" ? window.location.href : "";
 
@@ -95,25 +98,35 @@ function GameBody({ loading, game, handleModalClick, id, authUser }) {
               ]?.name ?? "Waiting for opponent",
           }}
           gstatus={game.status}
+          setCheckMessage={setCheckMessage}
         />
       </div>
-      <div className="flex flex-col space-y-4 w-full lg:w-1/4" id="game-footer">
+      <div
+        className="flex flex-col space-y-4 w-full lg:w-1/4 px-8"
+        id="game-footer"
+      >
+        <div className="p-1 flex flex-col items-center border-b">
+          {((game.status === "finished" || game.status === "quit") && (
+            <GameOverMessage />
+          )) || <h3>{checkMessage}</h3>}
+        </div>
+        {
+          // display check info
+        }
         {(game.status === "finished" || game.status === "quit") && (
-          <>
-            <h2 className="text-center">{<GameOverMessage />}</h2>
-            <Button className="w-full" onClick={() => router.push("/")}>
-              NEW GAME
-            </Button>
-          </>
+          <Button className="w-full" onClick={() => router.push("/u")}>
+            New Game
+          </Button>
         )}
 
         {game.status === "active" && (
           <Button variant="outline" onClick={handleModalClick}>
+            <OctagonX size={36} />
             Quit
           </Button>
         )}
 
-        {game.status === "waiting" && <ShareCart sharebleLink={sharebleLink} />}
+        {game.status === "waiting" && <ShareCard sharebleLink={sharebleLink} />}
       </div>
     </div>
   );

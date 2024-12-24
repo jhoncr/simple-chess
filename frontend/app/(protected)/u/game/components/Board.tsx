@@ -4,6 +4,7 @@ import { Chessboard } from "react-chessboard";
 import { Chess } from "chess.js";
 import { httpsCallable, getFunctions } from "firebase/functions";
 import { Players } from "./GameTypes";
+import { Badge } from "@/components/ui/badge";
 
 const makeMove = httpsCallable(getFunctions(), "makeMove", {
   timeout: 60 * 1000,
@@ -16,6 +17,7 @@ interface BoardProps {
   players: Players;
   gstatus: string;
   id: string;
+  setCheckMessage: (status: string) => void;
 }
 
 interface Move {
@@ -23,12 +25,19 @@ interface Move {
   to: string;
 }
 
-export function Board({ fen, piece, players, gstatus, id }: BoardProps) {
+export function Board({
+  fen,
+  piece,
+  players,
+  gstatus,
+  id,
+  setCheckMessage,
+}: BoardProps) {
   let chessboardRef = useRef();
   const [moveFrom, setMoveFrom] = useState("");
   const [rightClickedSquares, setRightClickedSquares] = useState({});
   const [optionSquares, setOptionSquares] = useState({});
-  const [status, setStatus] = useState();
+  // const [status, setStatus] = useState();
   const [game, setGameDb] = useState();
 
   useEffect(() => {
@@ -61,7 +70,7 @@ export function Board({ fen, piece, players, gstatus, id }: BoardProps) {
       msg = gameView.inCheck() === true ? "CHECK!" : "";
       msg += ` ${nextPlayer}'s turn.`;
     }
-    setStatus(msg);
+    setCheckMessage(msg);
   }
 
   function getMoveOptions(square: string) {
@@ -94,9 +103,9 @@ export function Board({ fen, piece, players, gstatus, id }: BoardProps) {
   }
 
   function onSquareClick(square: string) {
-    if (gstatus !== "active") return;
+    if (gstatus !== "active" || piece !== game.turn() || !game) return;
+
     console.log({ piece, turn: game.turn() });
-    if (piece !== game.turn()) return;
     setRightClickedSquares({});
 
     function resetFirstMove(square: string) {
@@ -109,37 +118,36 @@ export function Board({ fen, piece, players, gstatus, id }: BoardProps) {
       resetFirstMove(square);
       return;
     }
-    if (!game) return;
-    // attempt to make move
-    const gameCopy = { ...game };
-    const move = gameCopy.move({
-      from: moveFrom,
-      to: square,
-      promotion: "q", // always promote to a queen for example simplicity
-    });
 
-    // if invalid, setMoveFrom and getMoveOptions
-    if (move === null) {
+    // attempt to make move
+    // const gameCopy = new Chess(game.fen());
+    try {
+      const move = game.move({
+        from: moveFrom,
+        to: square,
+        promotion: "q", // always promote to a queen for example simplicity
+      });
+
+      // valid move, call callable function makeMove
+      console.log("moving", { moveFrom, square });
+      makeMove({
+        from: moveFrom,
+        to: square,
+        promotion: "q",
+        gameId: id,
+      })
+        .then((result) => {
+          console.log(result.data);
+          setMoveFrom("");
+          setOptionSquares({});
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    } catch (error) {
       resetFirstMove(square);
       return;
     }
-
-    // valid move, call callable function makeMove
-    console.log("moving", { moveFrom, square });
-    makeMove({
-      from: moveFrom,
-      to: square,
-      promotion: "q",
-      gameId: id,
-    })
-      .then((result) => {
-        console.log(result.data);
-        setMoveFrom("");
-        setOptionSquares({});
-      })
-      .catch((error) => {
-        console.error(error);
-      });
   }
 
   function onSquareRightClick(square: string) {
@@ -154,17 +162,28 @@ export function Board({ fen, piece, players, gstatus, id }: BoardProps) {
     });
   }
 
+  const NameTag = ({ isMe }: { isMe: boolean }) => {
+    const turn = game?.turn();
+    console.log("name tag", { isMe, piece, turn });
+    return (
+      players &&
+      players.opponent && (
+        <div className="flex items-center space-x-2 my-2">
+          <h2 className="text-lg font-semibold">
+            {isMe ? players.me : players.opponent}
+          </h2>
+          {((isMe && piece === turn) || (!isMe && piece !== turn)) && (
+            <Badge variant="secondary">Turn</Badge>
+          )}
+        </div>
+      )
+    );
+  };
+
   return (
     game && (
       <div>
-        {players && players.opponent && (
-          <div className="tags">
-            <span className="tag is-link">{players.opponent}</span>
-            {piece !== game.turn() && (
-              <span className="tag is-success is-light">Turn</span>
-            )}
-          </div>
-        )}
+        <NameTag isMe={false} />
         <Chessboard
           id="simple_board"
           boardOrientation={piece === "w" ? "white" : "black"}
@@ -185,15 +204,7 @@ export function Board({ fen, piece, players, gstatus, id }: BoardProps) {
           }}
           ref={chessboardRef}
         />
-        {players && players.me && (
-          <div className="tags">
-            <span className="tag is-link">{players.me}</span>
-            {piece === game.turn() && (
-              <span className="tag is-success is-light">Turn</span>
-            )}
-          </div>
-        )}
-        <p className="move-right">{status}</p>
+        <NameTag isMe={true} />
       </div>
     )
   );

@@ -1,7 +1,7 @@
 import Link from "next/link";
 // import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Heart } from "lucide-react";
+import { Play } from "lucide-react";
 import { Footer } from "@/components/footer";
 
 export default function AboutPage() {
@@ -9,7 +9,7 @@ export default function AboutPage() {
     <div className="flex flex-col min-h-screen">
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48">
+        <section className="w-full py-8 md:py-12 lg:py-16 xl:py-24">
           <div className="Simple Chesspx-4 md:px-6">
             <div className="flex flex-col items-center space-y-4 text-center">
               <div className="space-y-2">
@@ -21,13 +21,20 @@ export default function AboutPage() {
                   game, share the link, and start playing.
                 </p>
               </div>
+              <Link
+                href="/u"
+                className="inline-flex h-16 mt-4 items-center justify-center rounded-md bg-secondary px-12 text-lg font-medium text-secondary-foreground shadow transition-colors hover:bg-secondary/90 hover:scale-105 active:scale-95"
+              >
+                <Play size={24} className="mr-2" />
+                Start a Game
+              </Link>
             </div>
           </div>
         </section>
 
         {/* Company History */}
-        <section className="w-full py-12 md:py-24 lg:py-32">
-          <div className="Simple Chesspx-4 md:px-6">
+        <section className="w-full py-6 md:py-12 lg:py-16">
+          <div className="px-4 md:px-6">
             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-center mb-8">
               How to start
             </h2>

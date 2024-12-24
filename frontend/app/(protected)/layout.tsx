@@ -1,7 +1,7 @@
 "use client";
 import { useAuth } from "@/lib/auth_handler";
 import { useEffect, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
 export default function NeedLoginLayout({
   children,
@@ -12,6 +12,10 @@ export default function NeedLoginLayout({
   // const [toolbar, setToolBar] = useState(null as React.ReactNode);
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const currentPath =
+    pathname + (searchParams ? `?${searchParams.toString()}` : "");
 
   useEffect(() => {
     console.log("Loading Layout. User:", authUser);
@@ -26,7 +30,7 @@ export default function NeedLoginLayout({
     <>
       {(loading && <div>Loading App...</div>) ||
         (authUser && <> {children} </>) ||
-        router.push("/login?next=" + pathname)}
+        router.push(`/login?next=${encodeURIComponent(currentPath)}`)}
     </>
   );
 }
