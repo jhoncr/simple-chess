@@ -11,8 +11,9 @@ if (getApps().length === 0) {
 
 const db = getFirestore();
 
-// the schema consits of exactly either one of the following: gameId or startPiece.
-// startId is used to start a new game, while gameId is used to join an existing game.
+// the schema consits either: gameId or startPiece.
+// startId is used to start a new game,
+// gameId is used to join an existing game.
 const StartGameRequest = z
   .object({
     gameId: z.string().optional(),
@@ -75,9 +76,10 @@ export const initGame = onCall(
             [`players.${request.auth.uid}`]: {
               pstatus: "active",
               piece:
-                gameData.players[Object.keys(gameData.players)[0]].piece === "w"
-                  ? "b"
-                  : "w",
+                gameData.players[Object.keys(gameData.players)[0]].piece ===
+                "w" ?
+                  "b" :
+                  "w",
               name: request.auth.token.name,
             },
             status: "active",
