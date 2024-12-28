@@ -1,4 +1,4 @@
-import { Timestamp } from "firebase/firestore";
+import { Timestamp, DocumentData } from "firebase/firestore";
 // import the type User from
 
 export interface User {
@@ -23,17 +23,37 @@ export interface Item {
   };
 }
 
-// create an entry type that is used when reading from the database, it has the createdBy field and createdAt field
-export interface DBentry {
-  createdBy: string;
-  createdAt: Timestamp;
-  date: Timestamp;
-  id: string;
-  // optional fields
-  // eslint-disable-next-line
-  [key: string]: any;
+interface Player {
+  piece: "w" | "b";
+  name: string;
+  pstatus: "active" | "quit" | "finished";
 }
+export interface Players {
+  [key: string]: Player;
+}
+// // create an entry type that is used when reading from the database, it has the createdBy field and createdAt field
+// export interface DBentry {
+//   createdBy: string;
+//   createdAt: Timestamp;
+//   date: Timestamp;
+//   id: string;
+//   // optional fields
+//   // eslint-disable-next-line
+//   [key: string]: any;
+// }
 
-export interface DBentryMap {
-  [id: string]: DBentry;
+// export interface DBentryMap {
+//   [id: string]: DBentry;
+// }
+
+// game datatype
+export interface GameDoc extends DocumentData {
+  id: string;
+  gameState: "fen string";
+  status: "active" | "finished" | "quit" | "waiting";
+  createdAt: Timestamp;
+  finishedAt: Timestamp | null;
+  players: {
+    [uid: string]: Player;
+  };
 }

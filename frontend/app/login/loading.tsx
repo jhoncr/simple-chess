@@ -1,5 +1,6 @@
 "use client";
-export function LoadingPage() {
+
+export function LoadingAnimation({ text }: { text: string }) {
   return (
     <div
       style={{
@@ -14,7 +15,7 @@ export function LoadingPage() {
           <div className="double-bounce1"></div>
           <div className="double-bounce2"></div>
         </div>
-        <p>Loading, please wait...</p>
+        <p>{text}</p>
       </div>
       <style jsx>{`
         .spinner {
@@ -49,6 +50,9 @@ export function LoadingPage() {
       `}</style>
     </div>
   );
+}
+export function LoadingPage() {
+  return <LoadingAnimation text="Loading..." />;
 }
 
 export default LoadingPage;

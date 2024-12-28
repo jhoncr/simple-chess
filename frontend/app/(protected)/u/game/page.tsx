@@ -15,8 +15,10 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import { Board } from "./components/Board";
 import { OctagonX } from "lucide-react";
+import { GameDoc } from "@/lib/custom_types";
 
 const initGame = httpsCallable(getFunctions(), "initGame", {
   timeout: 60 * 1000,
@@ -37,11 +39,14 @@ function QuitModal({
   gameId: string;
 }) {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
   const quitMyGame = async () => {
     try {
+      setLoading(true);
       await quitGame({ gameId });
       router.push("/u");
+      setLoading(false);
     } catch (error) {
       console.error(error);
     }
@@ -55,7 +60,11 @@ function QuitModal({
           <DialogDescription>Quitting can’t be undone.</DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button variant="destructive" onClick={quitMyGame}>
+          <Button
+            variant="destructive"
+            onClick={quitMyGame}
+            disabled={loading}
+          >
             Quit
           </Button>
           <Button onClick={handleModalClick}>Cancel</Button>
@@ -67,7 +76,7 @@ function QuitModal({
 interface GameBodyProps {
   loading: boolean;
   //eslint-disable-next-line
-  game: any;
+  game: GameDoc | null;
   handleModalClick: () => void;
   id: string;
   //eslint-disable-next-line
@@ -81,12 +90,12 @@ function GameBody({
   id,
   authUser,
 }: GameBodyProps) {
-  const router = useRouter();
   const [checkMessage, setCheckMessage] = useState("");
   const sharebleLink =
     typeof window !== "undefined" ? window.location.href : "";
 
   const GameOverMessage = () => {
+    if (!game) return "Game not found";
     if (game.status === "quit") {
       const quitter = Object.entries(game.players).find(
         ([, player]) => player.pstatus === "quit"
@@ -94,6 +103,7 @@ function GameBody({
       return `${quitter?.[1].name} has quit the game`;
     }
     if (game.status === "finished") return "GAME OVER";
+
     return ":/";
   };
 
@@ -116,7 +126,9 @@ function GameBody({
             me: authUser.displayName,
             opponent:
               game.players[
-                Object.keys(game.players).find((uid) => uid !== authUser.uid)
+                Object.keys(game.players).find(
+                  (uid) => uid !== authUser.uid
+                ) || ""
               ]?.name ?? "Waiting for opponent",
           }}
           gstatus={game.status}
@@ -128,16 +140,17 @@ function GameBody({
         id="game-footer"
       >
         <div className="p-1 flex flex-col items-center border-b">
-          {((game.status === "finished" || game.status === "quit") && (
+          {(game.status === "finished" || game.status === "quit") && (
             <GameOverMessage />
-          )) || <h3>{checkMessage}</h3>}
+          )}
+          <h3>{checkMessage}</h3>
         </div>
         {
           // display check info
         }
         {(game.status === "finished" || game.status === "quit") && (
-          <Button className="w-full" onClick={() => router.push("/u")}>
-            New Game
+          <Button className="w-full" asChild>
+            <Link href="/u"> New Game </Link>
           </Button>
         )}
 
@@ -161,7 +174,7 @@ export default function GameApp() {
   const params = useSearchParams();
   const { authUser } = useAuth();
   const { game, loading } = useGameWatcher(`games/${params.get("id")}`);
-  const id = params.get("id");
+  const id = params.get("id") || "";
 
   const handleModalClick = () => {
     setModalState(modalState === "" ? "is-active" : "");
@@ -169,10 +182,10 @@ export default function GameApp() {
 
   useEffect(() => {
     if (game && game.status === "waiting") {
-      if (authUser.uid in game.players) return;
+      if (authUser && authUser.uid in game.players) return;
       initGame({ gameId: id }).catch((e) => console.error(e));
     }
-  }, [game, authUser.uid, id]);
+  }, [game, authUser?.uid, id]);
 
   return (
     <>

@@ -1,16 +1,24 @@
 "use client";
 import { useAuth } from "@/lib/auth_handler";
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Redirect } from "@/lib/utils";
+import { LoadingAnimation } from "@/app/login/loading";
 
 export default function NeedLoginLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  return (
+    <Suspense fallback={<LoadingAnimation text="Loading URL Params..." />}>
+      <InnerNeedLoginLayout>{children}</InnerNeedLoginLayout>
+    </Suspense>
+  );
+}
+
+function InnerNeedLoginLayout({ children }: { children: React.ReactNode }) {
   const { authUser, loading } = useAuth();
-  // const [toolbar, setToolBar] = useState(null as React.ReactNode);
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -23,7 +31,7 @@ export default function NeedLoginLayout({
 
   return (
     <div>
-      {(loading && <div>Loading App...</div>) ||
+      {(loading && <LoadingAnimation text="Checking Authentication..." />) ||
         (authUser && <> {children} </>) || <Redirect to={currentPath} />}
     </div>
   );

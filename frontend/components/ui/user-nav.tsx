@@ -25,11 +25,13 @@ export function UserNav({
         <Button variant="ghost" className="relative h-8 w-8 rounded-full ml-4">
           <Avatar className="h-9 w-9">
             <AvatarImage
-              src={user.photoURL}
+              src={user?.photoURL || ""}
               alt="User profile picture"
               referrerPolicy="no-referrer"
             />
-            <AvatarFallback>{user.email[0].toUpperCase()}</AvatarFallback>
+            <AvatarFallback>
+              {user.email ? user.email[0].toUpperCase() : ""}
+            </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>

@@ -3,7 +3,6 @@ import React, { useRef, useEffect, useState } from "react";
 import { Chessboard } from "react-chessboard";
 import { Chess, Square } from "chess.js";
 import { httpsCallable, getFunctions } from "firebase/functions";
-import { Players } from "./GameTypes";
 import { Badge } from "@/components/ui/badge";
 
 const makeMove = httpsCallable(getFunctions(), "makeMove", {
@@ -14,7 +13,7 @@ const makeMove = httpsCallable(getFunctions(), "makeMove", {
 interface BoardProps {
   fen: string;
   piece: "w" | "b";
-  players: Players;
+  players: { me: string; opponent: string };
   gstatus: string;
   id: string;
   setCheckMessage: (status: string) => void;
@@ -46,26 +45,29 @@ export function Board({
     if (fen) {
       console.log("fen", fen);
       setGameDb((prev) => {
-        if (prev !== null) {
+        if (prev !== null && prev.fen() !== fen) {
           prev.load(fen);
           updateInfo(prev);
           return prev;
         }
-        return new Chess(fen);
+        const g = new Chess(fen);
+        updateInfo(g);
+        return g;
       });
     }
   }, [fen]);
 
   function updateInfo(gameView: Chess) {
-    console.log("updation info");
+    console.log("update info");
 
-    const nextPlayer = gameView.turn() === "b" ? "black" : "white";
-    const currentPlayer = gameView.turn() === "b" ? "white" : "black";
+    const turn = gameView.turn();
+    const nextPlayer = turn === "b" ? "black" : "white";
+    const currentPlayer = turn === "b" ? "white" : "black";
 
     console.log({ nextPlayer });
     let msg = "";
     if (gameView.isCheckmate() === true) {
-      msg = `CHECKMATE! Player ${currentPlayer} wins!`;
+      msg = `CHECKMATE! ${currentPlayer} wins 🏆`;
     } else if (gameView.isDraw() === true) {
       msg = "DRAW!";
     } else {
@@ -140,6 +142,7 @@ export function Board({
       })
         .then((result) => {
           console.log(result.data);
+          // setGameDb(game);
           setMoveFrom("");
           setOptionSquares({});
         })
@@ -147,7 +150,7 @@ export function Board({
           console.error(error);
         });
     } catch (error) {
-      console.error(error);
+      console.warn("invalid move", error);
       resetFirstMove(square);
       return;
     }
@@ -165,35 +168,42 @@ export function Board({
     });
   }
 
-  const NameTag = ({ isMe }: { isMe: boolean }) => {
-    const turn = game?.turn();
-    console.log("name tag", { isMe, piece, turn });
+  const NameTag = ({ piece }: { piece: "w" | "b" }) => {
+    // this shows "Turn" Badge if the piece is the current turn
+    // otherwise it shows nothing
+    // it shows "Winner" Badge if the piece is the winner
+    // otherwise it shows nothing
+
+    if (!game) return null;
+
+    const turn = game.turn();
+    const isCheckmate = game.isCheckmate();
+
+    const isTurn = piece === turn && !isCheckmate;
+    const isWinner = isCheckmate && piece !== turn;
+
     return (
-      players &&
-      players.opponent && (
-        <div className="flex items-center space-x-2 my-2">
-          <h2 className="text-lg font-semibold">
-            {isMe ? String(players.me) : String(players.opponent)}
-          </h2>
-          {((isMe && piece === turn) || (!isMe && piece !== turn)) && (
-            <Badge variant="secondary">Turn</Badge>
-          )}
+      <div className="flex justify-left items-center gap-2 my-2">
+        <div className="text-lg font-bold">
+          {piece === "w" ? players.me : players.opponent}
         </div>
-      )
+        {isTurn && <Badge color="green">Turn</Badge>}
+        {isWinner && <Badge color="red">Winner 🏆</Badge>}
+      </div>
     );
   };
 
   return (
     game && (
       <div>
-        <NameTag isMe={false} />
+        <NameTag piece={piece === "w" ? "b" : "w"} />
         <Chessboard
           id="simple_board"
           boardOrientation={piece === "w" ? "white" : "black"}
           animationDuration={400}
           arePiecesDraggable={false}
           //   boardWidth={chessboardSize}
-          position={game?.fen() || ""}
+          position={fen || ""}
           onSquareClick={onSquareClick}
           onSquareRightClick={onSquareRightClick}
           customBoardStyle={{
@@ -206,7 +216,7 @@ export function Board({
           }}
           ref={chessboardRef}
         />
-        <NameTag isMe={true} />
+        <NameTag piece={piece} />
       </div>
     )
   );

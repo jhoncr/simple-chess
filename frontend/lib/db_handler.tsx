@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import {
   getFirestore,
   connectFirestoreEmulator,
-  getDoc,
+  // getDoc,
   getDocs,
   collection,
   doc,
@@ -10,8 +10,10 @@ import {
   where,
   // addDoc,
   onSnapshot,
+  Timestamp,
 } from "firebase/firestore";
 import { app } from "./auth_handler";
+import { GameDoc } from "./custom_types";
 
 // create a hook that watches a colection col_name
 export const db = getFirestore(app);
@@ -22,13 +24,13 @@ if (process.env.NODE_ENV === "development") {
 }
 
 // function to get a single document with id docRef (e.g.: db.doc('games/123')
-export async function getDocRef(docRef) {
-  const docSnap = await getDoc(docRef);
-  return docSnap.data();
-}
+// export async function getDocRef(docRef) {
+//   const docSnap = await getDoc(docRef);
+//   return docSnap.data();
+// }
 
 // funcion to get games an uid is a player
-export async function getGames(uid) {
+export async function getGames(uid: string) {
   const gamesRef = collection(db, "games");
   const querySnap = await getDocs(
     query(
@@ -45,9 +47,9 @@ export async function getGames(uid) {
   return querySnap.docs.map((doc) => [doc.id, doc.data()]);
 }
 
-// hook to watch a game
-export function useGameWatcher(gameRef) {
-  const [game, setGame] = useState(null);
+// hook to watch a game (e.g.: games/123)
+export function useGameWatcher(gameRef: string) {
+  const [game, setGame] = useState<GameDoc | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -58,9 +60,22 @@ export function useGameWatcher(gameRef) {
       (doc) => {
         // add the id to the game object
 
-        setGame({ ...doc.data(), id: doc.id });
+        const data = doc.data();
+        if (data) {
+          setGame({
+            ...data,
+            id: doc.id,
+            gameState: data.gameState || "fen string",
+            status: data.status || "waiting",
+            createdAt: data.createdAt || Timestamp.now(),
+            finishedAt: data.finishedAt || null,
+            players: data.players || {},
+          });
+        } else {
+          setGame(null);
+        }
         setLoading(false);
-        console.log("game updated", doc.data());
+        console.log("game updated", data);
       },
       (error) => {
         if (error.code === "permission-denied") {

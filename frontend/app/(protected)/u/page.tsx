@@ -14,23 +14,32 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { GameLinkProps, Players } from "./game/components/GameTypes";
 import { SquarePlus } from "lucide-react";
+import { Players } from "@/lib/custom_types";
+import { DocumentData } from "firebase/firestore";
 
 const initGame = httpsCallable(getFunctions(), "initGame", {
   timeout: 60 * 1000,
   limitedUseAppCheckTokens: true,
 });
 
-interface ListOfGamesProps {
-  uuid: string;
-}
-
 const getPushLink = (gameId: string) => `/u/game?id=${gameId}`;
 
+export interface GameLinkProps {
+  players: Players;
+  gameId: string;
+}
+
 function GameLink({ players, gameId }: GameLinkProps) {
-  const pls = Object.entries(players);
-  pls.push([null, { piece: pls[0][1].piece === "w" ? "b" : "w", name: "?" }]);
+  const players_arr = Object.entries(players);
+  players_arr.push([
+    "",
+    {
+      piece: players_arr[0][1].piece === "w" ? "b" : "w",
+      name: "?",
+      pstatus: "active",
+    },
+  ]);
 
   const PieceBorders = ({ piece }: { piece: string }) => {
     // return a white div of 4px width if piece is white
@@ -57,28 +66,26 @@ function GameLink({ players, gameId }: GameLinkProps) {
       key={gameId}
     >
       <div className="grid grid-cols-11 items-center text-center h-full">
-        <PieceBorders piece={pls[0][1].piece} />
+        <PieceBorders piece={players_arr[0][1].piece} />
         <div className="flex items-center justify-center col-span-4 h-full">
-          <p className="p-2 overflow-hidden">{pls[0][1].name}</p>
+          <p className="p-2 overflow-hidden">{players_arr[0][1].name}</p>
         </div>
-        <div className="col-span-1 text-gray-700">vs</div>d
+        <div className="col-span-1 text-gray-700">vs</div>
         <div className="flex items-center justify-center col-span-4 h-full">
-          <p className="p-2 overflow-hidden">{pls[1][1].name}</p>
+          <p className="p-2 overflow-hidden">{players_arr[1][1].name}</p>
         </div>
-        <PieceBorders piece={pls[1][1].piece} />
+        <PieceBorders piece={players_arr[1][1].piece} />
       </div>
     </a>
   );
 }
 
-function ListOfGames({ uuid }: ListOfGamesProps) {
-  const [gameList, setGameList] = useState<[string, { players: Players }][]>(
-    []
-  );
+function ListOfGames({ uuid }: { uuid: string }) {
+  const [gameList, setGameList] = useState<[string, DocumentData][]>([]);
 
   useEffect(() => {
     async function getGamesFromDB() {
-      const games = await getGames(uuid);
+      const games = (await getGames(uuid)) as [string, DocumentData][];
       setGameList(games);
     }
     getGamesFromDB();
@@ -96,6 +103,7 @@ function ListOfGames({ uuid }: ListOfGamesProps) {
 export default function Home() {
   const [startPiece, setStartPiece] = useState("r");
   const { authUser: currentUser } = useAuth();
+  const [loadingGame, setLoadingGame] = useState(false);
   const router = useRouter();
 
   function handleStartPieceChange(value: string) {
@@ -103,10 +111,12 @@ export default function Home() {
   }
 
   async function startOnlineGame() {
+    setLoadingGame(true);
     const newGameId = await initGame({ startPiece });
     if (newGameId.data) {
       router.push(`/u/game?id=${newGameId.data}`);
     }
+    setLoadingGame(false);
   }
 
   return (
@@ -116,7 +126,7 @@ export default function Home() {
           <CardTitle>Ongoing Games</CardTitle>
         </CardHeader>
         <CardContent>
-          <ListOfGames uuid={currentUser.uid} />
+          {currentUser && <ListOfGames uuid={currentUser.uid} />}
         </CardContent>
       </Card>
 
@@ -146,8 +156,15 @@ export default function Home() {
           </RadioGroup>
         </CardContent>
         <CardFooter>
-          <Button onClick={startOnlineGame} className="w-full">
-            <SquarePlus /> Create Game
+          <Button
+            onClick={startOnlineGame}
+            className="w-full"
+            disabled={loadingGame}
+          >
+            {(loadingGame && (
+              <span className="ml-2 animate-spin">⌛</span>
+            )) || <SquarePlus />}
+            Create Game
           </Button>
         </CardFooter>
       </Card>
