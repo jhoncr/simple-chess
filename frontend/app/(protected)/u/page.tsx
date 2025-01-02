@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { SquarePlus } from "lucide-react";
-import { Players } from "@/lib/custom_types";
+import { Player } from "@/lib/custom_types";
 import { DocumentData } from "firebase/firestore";
 
 const initGame = httpsCallable(getFunctions(), "initGame", {
@@ -26,21 +26,11 @@ const initGame = httpsCallable(getFunctions(), "initGame", {
 const getPushLink = (gameId: string) => `/u/game?id=${gameId}`;
 
 export interface GameLinkProps {
-  players: Players;
+  opponent: Player;
   gameId: string;
 }
 
-function GameLink({ players, gameId }: GameLinkProps) {
-  const players_arr = Object.entries(players);
-  players_arr.push([
-    "",
-    {
-      piece: players_arr[0][1].piece === "w" ? "b" : "w",
-      name: "?",
-      pstatus: "active",
-    },
-  ]);
-
+function GameLink({ opponent, gameId }: GameLinkProps) {
   const PieceBorders = ({ piece }: { piece: string }) => {
     // return a white div of 4px width if piece is white
     // return a gray div of 4px width if piece is black
@@ -65,36 +55,54 @@ function GameLink({ players, gameId }: GameLinkProps) {
       className="block w-full border rounded-md overflow-hidden"
       key={gameId}
     >
-      <div className="grid grid-cols-11 items-center text-center h-full">
-        <PieceBorders piece={players_arr[0][1].piece} />
-        <div className="flex items-center justify-center col-span-4 h-full">
-          <p className="p-2 overflow-hidden">{players_arr[0][1].name}</p>
-        </div>
+      <div className="grid grid-cols-7 items-center text-center h-full">
+        <PieceBorders piece={opponent.piece == "w" ? "b" : "w"} />
+        {/* <div className="flex items-center justify-center col-span-4 h-full"> */}
+        {/* <p className="p-2 overflow-hidden">{players_arr[0][1].name}</p> */}
+        {/* </div> */}
         <div className="col-span-1 text-gray-700">vs</div>
-        <div className="flex items-center justify-center col-span-4 h-full">
-          <p className="p-2 overflow-hidden">{players_arr[1][1].name}</p>
+        <div className="flex items-center justify-center col-span-3 h-full">
+          <p className="p-2 overflow-hidden">{opponent?.name ?? "????"}</p>
         </div>
-        <PieceBorders piece={players_arr[1][1].piece} />
+        <div className="col-span-1 text-gray-700">
+          <></>
+        </div>
+        <PieceBorders piece={opponent.piece} />
       </div>
     </a>
   );
 }
 
-function ListOfGames({ uuid }: { uuid: string }) {
-  const [gameList, setGameList] = useState<[string, DocumentData][]>([]);
+function ListOfGames({ uid }: { uid: string }) {
+  const [gameList, setGameList] = useState<GameLinkProps[]>([]);
 
   useEffect(() => {
     async function getGamesFromDB() {
-      const games = (await getGames(uuid)) as [string, DocumentData][];
-      setGameList(games);
+      const games = (await getGames(uid)) as [string, DocumentData][];
+
+      setGameList(
+        games.map((x) => ({
+          gameId: x[0],
+          opponent: Object.keys(x[1].players).reduce(
+            (acc, key) => {
+              return key !== uid ? x[1].players[key] : acc;
+            },
+            {
+              name: "???",
+              piece: x[1].players[uid].piece === "w" ? "b" : "w",
+              pstatus: "active",
+            } as Player
+          ),
+        }))
+      );
     }
     getGamesFromDB();
-  }, [uuid]);
+  }, [uid]);
 
   return (
     <div className="space-y-2">
       {gameList.map((x, idx) => (
-        <GameLink key={`gl-${idx}`} players={x[1].players} gameId={x[0]} />
+        <GameLink key={`gl-${idx}`} opponent={x.opponent} gameId={x.gameId} />
       ))}
     </div>
   );
@@ -126,7 +134,7 @@ export default function Home() {
           <CardTitle>Ongoing Games</CardTitle>
         </CardHeader>
         <CardContent>
-          {currentUser && <ListOfGames uuid={currentUser.uid} />}
+          {currentUser && <ListOfGames uid={currentUser.uid} />}
         </CardContent>
       </Card>
 

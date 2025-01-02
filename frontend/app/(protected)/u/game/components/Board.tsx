@@ -168,7 +168,7 @@ export function Board({
     });
   }
 
-  const NameTag = ({ piece }: { piece: "w" | "b" }) => {
+  const NameTag = ({ piece, name }: { piece: "w" | "b"; name: string }) => {
     // this shows "Turn" Badge if the piece is the current turn
     // otherwise it shows nothing
     // it shows "Winner" Badge if the piece is the winner
@@ -184,9 +184,7 @@ export function Board({
 
     return (
       <div className="flex justify-left items-center gap-2 my-2">
-        <div className="text-lg font-bold">
-          {piece === "w" ? players.me : players.opponent}
-        </div>
+        <div className="text-lg font-bold">{name}</div>
         {isTurn && <Badge color="green">Turn</Badge>}
         {isWinner && <Badge color="red">Winner 🏆</Badge>}
       </div>
@@ -196,7 +194,7 @@ export function Board({
   return (
     game && (
       <div>
-        <NameTag piece={piece === "w" ? "b" : "w"} />
+        <NameTag piece={piece === "w" ? "b" : "w"} name={players.opponent} />
         <Chessboard
           id="simple_board"
           boardOrientation={piece === "w" ? "white" : "black"}
@@ -216,7 +214,7 @@ export function Board({
           }}
           ref={chessboardRef}
         />
-        <NameTag piece={piece} />
+        <NameTag piece={piece} name={players.me} />
       </div>
     )
   );

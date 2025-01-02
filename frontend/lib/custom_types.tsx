@@ -23,7 +23,7 @@ export interface Item {
   };
 }
 
-interface Player {
+export interface Player {
   piece: "w" | "b";
   name: string;
   pstatus: "active" | "quit" | "finished";
